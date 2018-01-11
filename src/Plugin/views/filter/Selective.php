@@ -388,14 +388,16 @@ class Selective extends InOperator {
 
       $style = $display->getPlugin('style');
 
+      $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
       // Create array of objects for selector.
       $oids = [];
       foreach ($view_copy->result as $row) {
-        $key = $field->getValue($row);
-        $key = is_array($key) ? reset($key) : $key;
-        // @todo This double escapes markup.
-        $value = $style->getField($row->index, $field_id);
-        $oids[$key] = SafeMarkup::checkPlain($value);
+        $field_value = $field->getValue($row);
+        $keys = is_array($field_value) ? $field_value : [$field_value];
+        foreach ($keys as $delta => $key) {
+          $label = $field->getEntity($row)->{$field_id}[$delta]->get('entity')->getTarget()->getValue()->getTranslation($language)->label();
+          $oids[$key] = SafeMarkup::checkPlain($label);
+        }
       }
 
       // Sort values.
