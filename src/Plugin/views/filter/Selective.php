@@ -395,7 +395,15 @@ class Selective extends InOperator {
         $field_value = $field->getValue($row);
         $keys = is_array($field_value) ? $field_value : [$field_value];
         foreach ($keys as $delta => $key) {
-          $label = $field->getEntity($row)->{$field_id}[$delta]->get('entity')->getTarget()->getValue()->getTranslation($language)->label();
+          $target = $field->getEntity($row)->{$field_id}[$delta]->get('entity')->getTarget()->getValue();
+          // If the translation does not exist we use the original label.
+          try {
+            $label = $target->getTranslation($language)->label();
+          }
+          catch (\InvalidArgumentException $e) {
+            // watchdog_exception('type', $e, $target->name->value);
+            $label = $target->name->value;
+          }
           $oids[$key] = SafeMarkup::checkPlain($label);
         }
       }
